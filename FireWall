@@ -1,0 +1,68 @@
+import os
+
+# Function to add firewall rules using iptables
+def setup_firewall():
+    # Allow established connections
+    os.system('sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT')
+    
+    # Allow traffic on localhost (loopback interface)
+    os.system('sudo iptables -A INPUT -i lo -j ACCEPT')
+    
+    # Allow SSH traffic (port 22)
+    os.system('sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT')
+    
+    # Allow HTTP traffic (port 80)
+    os.system('sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT')
+    
+    # Allow HTTPS traffic (port 443)
+    os.system('sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT')
+    
+    # Drop all other traffic
+    os.system('sudo iptables -P INPUT DROP')
+    
+    print("Basic firewall setup complete.")
+
+# Call the function to configure the firewall
+setup_firewall()
+
+Part 2:
+
+sudo apt-get update
+sudo apt-get install suricata
+
+sudo nano /etc/suricata/rules/local.rules
+
+alert icmp any any -> any any (msg:"ICMP Packet Detected"; sid:1000001; rev:1;)
+
+sudo nano /etc/suricata/suricata.yaml
+
+- local.rules
+
+sudo systemctl restart suricata
+
+Part 3:
+
+import os
+
+def generate_ping(target_ip):
+    print(f"Pinging {target_ip} to test the IDS...")
+    os.system(f'ping -c 4 {target_ip}')
+
+def test_http_traffic(target_ip):
+    print(f"Testing HTTP traffic on {target_ip}...")
+    os.system(f'curl http://{target_ip}')
+
+# Replace 'target_ip' with the IP address of the machine you're testing
+target_ip = "192.168.1.1"
+
+# Test Ping (ICMP) traffic
+generate_ping(target_ip)
+
+# Test HTTP traffic
+test_http_traffic(target_ip)
+
+Part 4:
+
+drop icmp any any -> any any (msg:"ICMP Packet Blocked"; sid:1000002; rev:1;)
+
+sudo systemctl restart suricata
